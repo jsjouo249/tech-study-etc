@@ -1,0 +1,36 @@
+자바 가비지 컬렉션 - 더이상 사용되지 않는 오브젝트들을 자동으로 메모리에서 제거
+
+자바 - jvm(자바 가상 머신)
+자바는 jvm을 통해서 접근하기 떄문에, os의 메모리를 사용하거나 os의 메모리 누수가 발생하지 않는다.
+자바가 os에서 제공한 사이즈 이상의 메모리를 사용 시, 자동으로 프로그램이 종료되어 다른 프로그램에 영향을 주지 않는다.
+
+그러하여, gc라는 가비지 컬렉션이 자바의 메모리 누수현상을 방지하고, 프로그램이 중간에 꺼지지 않게 하는 방법이다.
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+gc에는 stack과 heap 영역을 쓰는데,
+stack은 heap 영역에 생성된 Object 타입의 데이터의 참조값이 할당된다. - 각 thread는 자신만의 stack을 가짐.
+
+heap은 stack의 데이터들이 저장되며, 모든 메모리 중 stack에 있는 데이터를 제외한 부분 - heap은 단 하나의 영역만 존재
+heap 영역에 있는 오브젝트들을 가리키는 참조 변수가 stack에 올라감.
+
+"stack에는 오브젝트가 생성되고, heap에는 각 오브젝트의 데이터들이 올라감"
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+gc는 heap영역의 데이터들 중, stack에서 접근이 불가능한 데이터를 제거한다.
+
+gc의 종류
+Serail GC - 디폴트 가비지 컬렉터로
+기존의 메모리에 있던 오브젝트들을 힙의 시작위치로 옮기는 Mark-Compact collection method를 사용
+
+Parallel GC
+cpu의 개수만큼 할당되며, young generation에 대한 가비지 컬렉션을 멀티 스레드로 사용한다.
+
+cms collector
+concurrent low pause collector로 가비지 컬렉션 작업과 애플리케이션을 동시에 수행하면서 가비지 컬렉션을 위해 멈추는 시간을 최소화 한다.
+cms 콜렉터는 살아있는 오브젝트들에 대한 compact 작업을 수행하지 않아서, 메모리의 파편화가 문제라면, 힙사이즈를 더 크게 할당해야 한다.
+
+
+
+출처 - https://yaboong.github.io/java/2018/05/26/java-memory-management/
+https://yaboong.github.io/java/2018/06/09/java-garbage-collection/
+https://www.oracle.com/webfolder/technetwork/tutorials/obe/java/gc01/index.html
