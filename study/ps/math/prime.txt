@@ -1,0 +1,21 @@
+public boolean checkPrime( int num ) {
+
+	boolean flag = true;
+	
+	if( num == 1 ) {
+		return false;
+	}
+	
+	int size = (int)Math.sqrt( num );
+	
+	for(int i = 2; i <= size; i++) {
+		if( num % i == 0 ) {
+			flag = false;
+			break;
+		}else {
+			flag = true;
+		}
+	}
+	
+	return flag;
+}

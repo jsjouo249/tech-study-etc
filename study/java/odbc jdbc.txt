@@ -1,0 +1,8 @@
+데이터에 접근하기 위해 사용되는 odbc, jdbc
+
+jdbc - Java Database Connectivity
+그대로 java에서 datebase에 접근하기 위한 java API
+
+odbc - Open Database Connectivity
+데이터베이스에 접근하기 위한 표준 개방형 응용 프로그램 인터페이스로,
+여러 종류의 데이터베이스에 접근 가능하지만, 각 디비마다 별도의 모듈이나 드라이버가 필요

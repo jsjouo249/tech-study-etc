@@ -1,16 +1,16 @@
-public static int gcd( int a, int b) {
-	int temp = a;
+public static int gcd( int max, int min) {
+	int temp = max;
 
-	while( b > 0 ) {
+	while( min > 0 ) {
 
-		temp = a % b;
-		a = b;
-		b = temp;
+		temp = max % min;
+		max = min;
+		min = temp;
 	}
 
-	return a;
+	return max;
 }
 
-public static int lcm( int a, int b, int gcd  ) {
-	return ( a * b / gcd );
+public static int lcm( int max, int min, int gcd  ) {
+	return ( max * min / gcd );
 }
