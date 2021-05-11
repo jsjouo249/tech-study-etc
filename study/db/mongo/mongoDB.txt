@@ -1,0 +1,18 @@
+도커에서 mogoDB 이미지 가져오기
+docker pull mongo
+
+도커에서 이미지 확인
+docker image list
+
+도커에서 mongo-container라는 이름의 컨테이너를 몽고 기본포트인 27017:27017로 생성하는데 -auth는 보안접근용이여서 test시 안적어도 됨
+docker run -name mongo-container -p 27017:27017 mongo[-auth]
+
+bin의 bash에서 mongo-container의 컨테이너를 실행
+docker exec -it mongo-container /bin/bash
+
+mongo로 실행
+mongo
+
+관리자로 계정 생성
+use admin
+
