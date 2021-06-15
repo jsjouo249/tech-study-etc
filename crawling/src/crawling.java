@@ -45,6 +45,12 @@ public class crawling {
 		//파일 생성
 		String fileName = "C:" + File.separator + "Users" + File.separator + "ngcc" + File.separator + "Desktop" + File.separator + "검색" + File.separator + searchContent + ".txt";
 
+		File isExist = new File(fileName);
+		if (isExist.exists()) {
+			System.out.println( "이미 수집한 이력이 있습니다." );
+			return;
+		}
+
 		try {
 
 			BufferedWriter bw = new BufferedWriter( new FileWriter( fileName, true ) );
@@ -67,7 +73,7 @@ public class crawling {
 					String[] adSiteUrl = adSiteUrlList.get(i).split("·");
 
 					if( adSiteUrl.length >= 2 ) {
-						System.out.println( "{ siteUrl : \"" + adSiteUrl[1].substring( 0 , adSiteUrl[1].indexOf( " 이 " ) ) + "\" , siteNm : \"" + adSiteNmList.get(i) + "\", sn : " + sn + "}" );
+						System.out.println( "{ siteUrl : \"" + adSiteUrl[1].substring( 0 , adSiteUrl[1].indexOf( " 이 " ) ) + "\" , siteNm : \"" + adSiteNmList.get(i) + "\", sn : NumberInt(" + sn + "), searchContent : \"" + searchContent + "\"}," );
 						bw.write( sn + " : \t" + adSiteUrl[1].substring( 0 , adSiteUrl[1].indexOf( " 이 " ) ).replace( "\"", "'") + "\t\t\t\t\t" + adSiteNmList.get(i).replace( "\"", "'") + "\n" );
 						sn++;
 					}
@@ -109,7 +115,8 @@ public class crawling {
 							aTagUrl = aTagUrl.split( "›" )[0];
 						}
 
-						System.out.println( "{ siteUrl : \"" + aTagUrl.replace( "\"", "'") + "\", siteNm : \"" + nmList.get(i).replace( "\"", "'") + "\", sn : " + sn + "}" );
+						System.out.println( "{ siteUrl : \"" + aTagUrl.replace( "\"", "'") + "\", siteNm : \"" + nmList.get(i).replace( "\"", "'") + "\", sn : NumberInt(" + sn + "), searchContent : \"" + searchContent + "\"}," );
+
 						sn++;
 					}
 				}
