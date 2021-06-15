@@ -1,0 +1,17 @@
+인덱스 생성
+db.sampleSiteInfoTest.createIndex( {"siteNm":"text"} )
+//텍스트 인덱스는 collection당 1개만 가능.
+
+$text연산자를 이용하여 검색
+db.sampleSiteInfoTest.find(
+	{ $text: {$search: str } 	}
+)
+
+$text
+str => "\"메리트 카지노\"" 
+\"\" = str이 포함하는 문서만 일치
+
+str => "카지노 -메리트"
+ - = 해당 문자열 제외하며, 공백후-으로 확인
+
+$text 연산자
