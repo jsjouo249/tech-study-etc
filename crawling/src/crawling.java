@@ -167,7 +167,6 @@ public class crawling {
 				}
 			}
 
-			//사이트 url 중복 제거한 hm에서 뽑아서 저장
 			for( String temp : siteInfo.keySet() ) {
 				row = sheet.createRow( excelRow );
 				row.createCell( 0 ).setCellValue( temp );
