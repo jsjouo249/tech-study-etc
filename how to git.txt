@@ -1,7 +1,0 @@
-git status		: 현재 상태 확인
-
-git add '' || . 	: 커밋할 파일을 준비영역으로 옮김
-
-git commit -m ""	: 커밋과 함께 메세지 입력
-
-git push -u origin master	: git에 저장
