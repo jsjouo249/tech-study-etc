@@ -19,11 +19,22 @@ import org.jsoup.Jsoup;
 import org.jsoup.internal.StringUtil;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.xml.sax.HandlerBase;
+
+class siteInfo{
+	String siteUrl;			//검색결과 : 사이트 URL
+	String siteTitle;		//검색결과 : 사이트 타이틀( 검색 화면에 보여지는 검색 결과 )
+	String searchContent;	//검색 단어
+
+	public siteInfo( String siteUrl, String siteTitle, String searchContent ) {
+		this.siteUrl 	   = siteUrl;
+		this.siteTitle     = siteTitle;
+		this.searchContent = searchContent;
+	}
+}
 
 public class crawling {
 
-	public static void main(String[] args) throws Exception{
+	public static ArrayList<siteInfo> makeExcel( String srchContent ) throws Exception{
 
 		//검색 페이징 담는 큐
 		Queue<String> stPg = new LinkedList<>();
@@ -31,13 +42,14 @@ public class crawling {
 		//중복된 사이트 제거하기 위한 해쉬맵
 		HashMap<String, String> siteInfo = new HashMap<>();
 
+		//반환할 사이트 정보 리스트
+		ArrayList<siteInfo> siteInfoList = new ArrayList<>();
+
 		//검색 설정
 		String searchMain = "https://www.google.com";
 		String searchNextUrl = "/search?q=";
-		System.out.println( "검색할 단어 입력 : " );
 
-		BufferedReader contentReader = new BufferedReader(new InputStreamReader(System.in));
-		String searchContent = contentReader.readLine();
+		String searchContent = srchContent;
 
 		String searchPage	 = "&start=";
 		stPg.add( searchMain + searchNextUrl + searchContent + searchPage + ( (1 - 1) * 10) );	//카지노
@@ -75,14 +87,14 @@ public class crawling {
 		oCell.setCellStyle( cellStyle );
 
 		zCell.setCellValue( "사이트 URL" );
-		oCell.setCellValue( "사이트 명" );
+		oCell.setCellValue( "사이트 타이틀" );
 		/********************************************************************/
 
 
 		File isExist = new File( fileNameExcel );
 		if (isExist.exists()) {
 			System.out.println( "이미 수집한 이력이 있습니다." );
-			return;
+			return null;
 		}
 
 		try {
@@ -104,7 +116,7 @@ public class crawling {
 					String[] adSiteUrl = adSiteUrlList.get(i).split("·");
 
 					if( adSiteUrl.length >= 2 ) {
-						System.out.println( "{ siteUrl : \"" + adSiteUrl[1].substring( 0 , adSiteUrl[1].indexOf( " 이 " ) ) + "\" , siteNm : \"" + adSiteNmList.get(i) + "\", searchContent : \"" + searchContent + "\"}," );
+						System.out.println( excelRow + " { siteUrl : \"" + adSiteUrl[1].substring( 0 , adSiteUrl[1].indexOf( " 이 " ) ) + "\" , siteNm : \"" + adSiteNmList.get(i) + "\", searchContent : \"" + searchContent + "\"}," );
 						siteInfo.put( adSiteUrl[1].substring( 0 , adSiteUrl[1].indexOf( " 이 " ) ).replace( "\"", "'") , adSiteNmList.get(i).replace( "\"", "'") );
 					}
 				}
@@ -144,7 +156,7 @@ public class crawling {
 							aTagUrl = aTagUrl.split( "›" )[0];
 						}
 
-						System.out.println( "{ siteUrl : \"" + aTagUrl.replace( "\"", "'") + "\", siteNm : \"" + nmList.get(i).replace( "\"", "'") + "\", searchContent : \"" + searchContent + "\"}," );
+						System.out.println( excelRow + " { siteUrl : \"" + aTagUrl.replace( "\"", "'") + "\", siteNm : \"" + nmList.get(i).replace( "\"", "'") + "\", searchContent : \"" + searchContent + "\"}," );
 						siteInfo.put( aTagUrl.replace( "\"", "'") , nmList.get(i).replace( "\"", "'") );
 					}
 				}
@@ -172,6 +184,7 @@ public class crawling {
 				row.createCell( 0 ).setCellValue( temp );
 				row.createCell( 1 ).setCellValue( siteInfo.get( temp ) );
 				excelRow++;
+				siteInfoList.add( new siteInfo( temp, siteInfo.get( temp ), searchContent ) );
 			}
 
 			File excel = new File( fileNameExcel );
@@ -184,5 +197,6 @@ public class crawling {
 			e.printStackTrace();
 		}
 
+		return siteInfoList;
 	}
 }
