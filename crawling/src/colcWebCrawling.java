@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class colcWebCrawling {
 
@@ -12,18 +13,15 @@ public class colcWebCrawling {
 
 		int choice = Integer.parseInt( br.readLine() );
 
-		if( null == searchOrInsertWithDB.getMongoDb() ) {
-			System.out.println( "Check connect to DB" );
-
-		}else {
-
+		//getMongoCollection으로 db연동 및 해당 collection 확인
+		if( null != searchOrInsertWithDB.getMongoCollection() ) {
 			if( choice == 1 ) {
-
+				//검색
 				searchOrInsertWithDB.find();
 
 			}else if( choice == 2 ) {
-
-				System.out.println( "검색할 단어 입력 : " );
+				//데이터 적재
+				System.out.println( "데이터 적재 할 검색어 입력 : " );
 
 				String srchContent = br.readLine();
 
@@ -31,20 +29,22 @@ public class colcWebCrawling {
 				 * siteInfo 클래스
 				 * siteUrl			: 사이트 URL
 				 * siteTitle		: 사이트 타이틀
+				 * siteExplain		: 사이트 설명
 				 * searchContent	: 검색 명
+				 *
+				 * return ArrayList
+				 * 이미 검색한 이력이 있으면 return null;
 				 */
-				ArrayList<siteInfo> ll = crawling.makeExcel( srchContent );
+				HashSet<siteInfo> siteInfoHs = crawling.makeExcel( srchContent );
 
-				//searchOrInsertWithDB.insertSiteInfo;
+				if( null != siteInfoHs ) {
+					searchOrInsertWithDB.insert( siteInfoHs );
+				}
 
 			}else {
 				System.out.println( "알맞은 숫자" );
 			}
-
 		}
-
-
-
 
 	}
 }

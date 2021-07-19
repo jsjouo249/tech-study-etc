@@ -1,10 +1,10 @@
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -21,29 +21,45 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 class siteInfo{
-	String siteUrl;			//검색결과 : 사이트 URL
-	String siteTitle;		//검색결과 : 사이트 타이틀( 검색 화면에 보여지는 검색 결과 )
+	String siteUrl;			//검색 결과 : 사이트 URL
+	String siteTitle;		//검색 결과 : 사이트 타이틀( 검색 화면에 보여지는 검색 결과 )
+	String siteExplain;		//검색 정보
 	String searchContent;	//검색 단어
 
-	public siteInfo( String siteUrl, String siteTitle, String searchContent ) {
+	public siteInfo( String siteUrl, String siteTitle, String siteExplain, String searchContent ) {
 		this.siteUrl 	   = siteUrl;
 		this.siteTitle     = siteTitle;
+		this.siteExplain   = siteExplain;
 		this.searchContent = searchContent;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		siteInfo compare = (siteInfo) obj;
+		//키가 될 siteUrl로 동일한지 비교
+		return ( this.siteUrl.equals( compare.siteUrl ) );
+	}
+
+	@Override
+	public int hashCode() {
+		//키가 될 siteUrl로 해쉬코드 생성
+		return siteUrl.hashCode();
 	}
 }
 
 public class crawling {
 
-	public static ArrayList<siteInfo> makeExcel( String srchContent ) throws Exception{
+//	public static void main(String agrs[]) throws Exception {
+//		makeExcel( "메리트 토토" );
+//	}
+
+	public static HashSet<siteInfo> makeExcel( String srchContent ) throws Exception{
 
 		//검색 페이징 담는 큐
 		Queue<String> stPg = new LinkedList<>();
 
-		//중복된 사이트 제거하기 위한 해쉬맵
-		HashMap<String, String> siteInfo = new HashMap<>();
-
-		//반환할 사이트 정보 리스트
-		ArrayList<siteInfo> siteInfoList = new ArrayList<>();
+		//중복된 사이트 제거하기 위한 해쉬셋 - iterator사용가능해서 사용
+		HashSet<siteInfo> siteInfoHs = new HashSet<>();
 
 		//검색 설정
 		String searchMain = "https://www.google.com";
@@ -52,7 +68,7 @@ public class crawling {
 		String searchContent = srchContent;
 
 		String searchPage	 = "&start=";
-		stPg.add( searchMain + searchNextUrl + searchContent + searchPage + ( (1 - 1) * 10) );	//카지노
+		stPg.add( searchMain + searchNextUrl + searchContent + searchPage + ( (1 - 1) * 10) );
 
 		//제외 단어 리스트			나무위키  위키피디아
 		String[] excepWord = { "namu", "wiki" };
@@ -65,6 +81,7 @@ public class crawling {
 
 		/*****************************엑셀 초기 셋팅***************************************/
 		int excelRow = 1;
+
 		XSSFWorkbook workbook = new XSSFWorkbook();
 		XSSFSheet sheet = workbook.createSheet( searchContent );
 
@@ -90,7 +107,6 @@ public class crawling {
 		oCell.setCellValue( "사이트 타이틀" );
 		/********************************************************************/
 
-
 		File isExist = new File( fileNameExcel );
 		if (isExist.exists()) {
 			System.out.println( "이미 수집한 이력이 있습니다." );
@@ -99,25 +115,29 @@ public class crawling {
 
 		try {
 
+			//검색 시, 나온 페이지 전체 조회
 			while( !stPg.isEmpty() ) {
 
 				String url = stPg.poll();
 
 				Document doc = Jsoup.connect( url ).get();
 
-				List<String> urlList = new ArrayList<String>();
-				List<String> nmList  = new ArrayList<String>();
+				List<String> urlList = new ArrayList<String>();									//검색 결과 사이트 URL 리스트
+				List<String> nmList  = new ArrayList<String>();									//검색 결과 사이트 명 리스트
+				List<String> siteExplainList = doc.getElementsByClass( "lyLwlc" ).eachText();	//검색 사이트 설명
 
-				List<String> adSiteNmList = doc.getElementsByClass( "v0nnCb" ).eachText();	//광고 사이트 명
-				List<String> adSiteUrlList = doc.getElementsByClass("zMz9yb").eachText();	//검색 결과 광고 사이트 URL div 클래스
+				List<String> adSiteUrlList = doc.getElementsByClass("zMz9yb").eachText();		//검색 결과 광고 사이트 URL div 클래스
+				List<String> adSiteNmList  = doc.getElementsByClass( "v0nnCb" ).eachText();		//광고 사이트 명
+
+				int adSize = adSiteUrlList.size();
 
 				//광고 사이트는 따로 뽑아서 출력
-				for(int i = 0; i < adSiteUrlList.size(); i++) {
+				for(int i = 0; i < adSize; i++) {
 					String[] adSiteUrl = adSiteUrlList.get(i).split("·");
 
 					if( adSiteUrl.length >= 2 ) {
-						System.out.println( excelRow + " { siteUrl : \"" + adSiteUrl[1].substring( 0 , adSiteUrl[1].indexOf( " 이 " ) ) + "\" , siteNm : \"" + adSiteNmList.get(i) + "\", searchContent : \"" + searchContent + "\"}," );
-						siteInfo.put( adSiteUrl[1].substring( 0 , adSiteUrl[1].indexOf( " 이 " ) ).replace( "\"", "'") , adSiteNmList.get(i).replace( "\"", "'") );
+						System.out.println( excelRow + " { siteUrl : \"" + adSiteUrl[1].substring( 0 , adSiteUrl[1].indexOf( " 이 " ) ) + "\" , siteNm : \"" + adSiteNmList.get(i) + "\" , siteExplain : \"" + siteExplainList.get(i) + "\", searchContent : \"" + searchContent + "\"}," );
+						siteInfoHs.add( new siteInfo( adSiteUrl[1].substring( 0 , adSiteUrl[1].indexOf( " 이 " ) ).replace( "\"", "'") , adSiteNmList.get(i).replace( "\"", "'"), siteExplainList.get(i), searchContent ) );
 					}
 				}
 
@@ -126,7 +146,7 @@ public class crawling {
 
 				Elements nmEle = doc.getElementsByClass( "DKV0Md" );			//검색 결과 site명 클래스
 
-				//사이트 url 리스트
+				//사이트 URL 리스트
 				for(int i = 0; i < searchInfoList.length; i++) {
 					if( searchInfoList[i].contains( "yuRUbf" ) ) {
 						String temp = searchInfoList[i+1].split("\"")[1];
@@ -137,9 +157,11 @@ public class crawling {
 
 				nmList = nmEle.eachText();			//사이트 명 리스트
 
-				boolean isExcepUrl = false;
+				boolean isExcepUrl = false;			//검색 제외 단어 리스트 확인 용
 
-				for(int i = 0; i < urlList.size(); i++) {
+				int urlSize = urlList.size();
+
+				for(int i = 0; i < urlSize; i++) {
 					isExcepUrl = false;
 
 					//제외해야 하는 단어가 껴있으면 제외
@@ -156,13 +178,13 @@ public class crawling {
 							aTagUrl = aTagUrl.split( "›" )[0];
 						}
 
-						System.out.println( excelRow + " { siteUrl : \"" + aTagUrl.replace( "\"", "'") + "\", siteNm : \"" + nmList.get(i).replace( "\"", "'") + "\", searchContent : \"" + searchContent + "\"}," );
-						siteInfo.put( aTagUrl.replace( "\"", "'") , nmList.get(i).replace( "\"", "'") );
+						System.out.println( excelRow + " { siteUrl : \"" + aTagUrl.replace( "\"", "'") + "\", siteNm : \"" + nmList.get(i).replace( "\"", "'") + "\" , siteExplain : \"" + siteExplainList.get( i + adSiteUrlList.size() ) + "\", searchContent : \"" + searchContent + "\"}," );
+						siteInfoHs.add( new siteInfo( aTagUrl.replace( "\"", "'") , nmList.get(i).replace( "\"", "'"), siteExplainList.get( i + adSize ), searchContent ) );
 					}
 				}
 
 				//해당 페이지에서 확인가능한 페이지 리스트 가져오기
-				List<String> pageEle = doc.getElementsByClass("fl").eachText();	//해당 페이지의 리스트
+				List<String> pageEle = doc.getElementsByClass("fl").eachText();	//해당 페이지의 번호 및 이동하는 태그 리스트
 
 				for(int i = pageEle.size() - 1; i >= 0; i--) {
 					if( StringUtil.isNumeric( pageEle.get(i) ) ) {
@@ -171,20 +193,23 @@ public class crawling {
 						}
 						break;
 					}
-
 				}
 
 				for( ; idx <= lastPage; idx++ ) {
-					stPg.add( searchMain + searchNextUrl + searchContent + searchPage + ( (idx - 1) * 10 ) );//( 현재 페이지 - 1 ) * 10 = 검색 url의 시작 페이지 숫자
+					stPg.add( searchMain + searchNextUrl + searchContent + searchPage + ( (idx - 1) * 10 ) );//( 현재 페이지 - 1 ) * 10 = 검색 URL의 시작 페이지 숫자
 				}
 			}
 
-			for( String temp : siteInfo.keySet() ) {
+			//중복제거 한 사이트 url을 엑셀데이터와 리스트에 삽입
+			Iterator<siteInfo> hsIter = siteInfoHs.iterator();
+
+			while( hsIter.hasNext() ) {
+				siteInfo data = hsIter.next();
+
 				row = sheet.createRow( excelRow );
-				row.createCell( 0 ).setCellValue( temp );
-				row.createCell( 1 ).setCellValue( siteInfo.get( temp ) );
+				row.createCell( 0 ).setCellValue( data.siteUrl );
+				row.createCell( 1 ).setCellValue( data.siteTitle );
 				excelRow++;
-				siteInfoList.add( new siteInfo( temp, siteInfo.get( temp ), searchContent ) );
 			}
 
 			File excel = new File( fileNameExcel );
@@ -197,6 +222,6 @@ public class crawling {
 			e.printStackTrace();
 		}
 
-		return siteInfoList;
+		return siteInfoHs;
 	}
 }
