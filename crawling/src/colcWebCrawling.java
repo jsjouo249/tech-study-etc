@@ -16,8 +16,13 @@ public class colcWebCrawling {
 		//getMongoCollection으로 db연동 및 해당 collection 확인
 		if( null != searchOrInsertWithDB.getMongoCollection() ) {
 			if( choice == 1 ) {
+
+				System.out.println( "검색할 명령어 입력" );
+
+				String srchContent = br.readLine();
+
 				//검색
-				searchOrInsertWithDB.find();
+				searchOrInsertWithDB.find( srchContent );
 
 			}else if( choice == 2 ) {
 				//데이터 적재

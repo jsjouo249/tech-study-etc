@@ -4,6 +4,7 @@ import java.util.Iterator;
 
 import org.bson.Document;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
@@ -70,19 +71,33 @@ public class searchOrInsertWithDB {
 		}
 	}
 
-	public static void find() {
+	public static void find( String searchContent ) {
 
-		MongoCursor<Document> cur = collection.find().iterator();
+		BasicDBObject query = new BasicDBObject();
+		BasicDBObject subquery = new BasicDBObject();
 
-		int size = 0;
+		subquery.put( "$search" , searchContent );
+
+		query.put( "$text" , subquery);
+
+		MongoCursor<Document> cur = collection.find( query ).iterator();
+
+		int size = 1;
 
 		try {
-			while( cur.hasNext() ) {
-				Document bb = cur.next();
-				String a = bb.toJson();
-				System.out.println( size + " : " + a );
-				size++;
+
+			if( !cur.hasNext() ) {
+				System.out.println( "search Result : 0" );
+
+			}else {
+				while( cur.hasNext() ) {
+					Document bb = cur.next();
+					String a = bb.toJson();
+					System.out.println( size + " : " + a );
+					size++;
+				}
 			}
+
 
 		} finally {
 			cur.close();
@@ -106,6 +121,8 @@ public class searchOrInsertWithDB {
 		}
 
 		collection.insertMany( docs );
+
+		System.out.println( "Complete!" );
 
 	}
 
