@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -117,6 +118,8 @@ public class searchOrInsertWithDB {
 					   	   .append( "siteTitle"	   , siteInfo.siteTitle )
 					   	   .append( "siteExplain"  , siteInfo.siteExplain )
 					   	   .append( "searchContent", siteInfo.searchContent )
+					   	   .append( "bigram"	   , siteInfo.bigram )
+					   	   .append( "trigram"	   , siteInfo.trigram )
 				);
 		}
 

@@ -36,9 +36,11 @@ public class colcWebCrawling {
 				 * siteTitle		: 사이트 타이틀
 				 * siteExplain		: 사이트 설명
 				 * searchContent	: 검색 명
+				 * bigram			: 2gram
+				 * trigram			: 3gram
 				 *
 				 * return ArrayList
-				 * 이미 검색한 이력이 있으면 return null;
+				 * 이미 데이터를 적재한 이력이 있으면 return null;
 				 */
 				HashSet<siteInfo> siteInfoHs = crawling.makeExcel( srchContent );
 
