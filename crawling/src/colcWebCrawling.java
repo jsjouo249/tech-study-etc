@@ -9,12 +9,12 @@ public class colcWebCrawling {
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-		System.out.println( "검색 : 1, 데이터 적재 : 2" );
-
-		int choice = Integer.parseInt( br.readLine() );
-
 		//getMongoCollection으로 db연동 및 해당 collection 확인
 		if( null != searchOrInsertWithDB.getMongoCollection() ) {
+			System.out.println( "검색 : 1, 데이터 적재 : 2" );
+
+			int choice = Integer.parseInt( br.readLine() );
+
 			if( choice == 1 ) {
 
 				System.out.println( "검색할 명령어 입력" );

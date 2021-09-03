@@ -1,9 +1,13 @@
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
@@ -12,6 +16,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Projections;
 
 public class searchOrInsertWithDB {
 
@@ -72,35 +77,42 @@ public class searchOrInsertWithDB {
 		}
 	}
 
-	public static void find( String searchContent ) {
+	public static void find( String searchContent ) throws IOException {
+
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter( System.out) );
 
 		BasicDBObject query = new BasicDBObject();
 		BasicDBObject subquery = new BasicDBObject();
 
 		subquery.put( "$search" , searchContent );
-
 		query.put( "$text" , subquery);
 
-		MongoCursor<Document> cur = collection.find( query ).iterator();
+		Bson projectionFields = Projections.fields(
+					Projections.include( "siteUrl", "siteTitle", "siteExplain", "searchContent" ),
+					Projections.excludeId()
+				);
+
+		MongoCursor<Document> cur = collection.find( query ).projection( projectionFields ).iterator()  ;
 
 		int size = 1;
 
 		try {
 
 			if( !cur.hasNext() ) {
-				System.out.println( "search Result : 0" );
+				bw.write( "search Result : 0" );
 
 			}else {
 				while( cur.hasNext() ) {
-					Document bb = cur.next();
-					String a = bb.toJson();
-					System.out.println( size + " : " + a );
+					Document doc = cur.next();
+					bw.write( size + " : " + doc.toJson() + "\n" );
 					size++;
 				}
 			}
 
 
 		} finally {
+			bw.flush();
+			bw.close();
 			cur.close();
 		}
 	}

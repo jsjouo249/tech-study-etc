@@ -54,7 +54,7 @@ class siteInfo{
 public class crawling {
 
 	public static void main(String[] args) throws Exception {
-		makeExcel("킹 토토");
+		makeExcel("메리트 토토");
 	}
 
 	public static HashSet<siteInfo> makeExcel( String srchContent ) throws Exception{
@@ -74,8 +74,8 @@ public class crawling {
 		String searchPage	 = "&start=";
 		quePg.add( searchMain + searchNextUrl + searchContent + searchPage + "0" );
 
-		//제외 단어 리스트			나무위키  위키피디아
-		String[] excepWord = { "namu", "wiki" };
+		//제외 단어 리스트			나무위키  위키피디아     구글 도서 관련
+		String[] excepWord = { "namu", "wiki", "books.google.co.kr" };
 
 		int idx = 2;	  //현재 pageNum이되며, 다음 페이지의 시작 pageNum이 됨
 		int lastPage = 0; //마지막 pageNum
@@ -154,14 +154,16 @@ public class crawling {
 					String adSiteTitle  		= ele.getElementsByClass( "v0nnCb" ).eachText().get(0); //광고 사이트 타이틀
 
 					List<String> adSiteExpList 	= ele.getElementsByClass( "lyLwlc" ).eachText();        //광고 사이트 설명 - 여러 줄인 경우 존재
-					StringBuilder adSiteExpStr  = new StringBuilder();									//광고 사이트 설명을 합치기 위한 stringbuilder
+					StringBuilder adSiteExpSB  = new StringBuilder();									//광고 사이트 설명을 합치기 위한 stringbuilder
 
 					int adSiteExpLength = adSiteExpList.size();
 
 					//사이트 설명이 여러건이면
 					for(int j = 0; j < adSiteExpLength; j++) {
-						adSiteExpStr.append( adSiteExpList.get( j ) );
+						adSiteExpSB.append( adSiteExpList.get( j ) );
 					}
+					//사이트 설명 string으로 형변환
+					String adSiteExpStr = adSiteExpSB.toString();
 
 					//광고· - siteUrl 처음에 붙기 때문에, 광고· 제거하기 위한 substring
 					adSiteUrl = adSiteUrl.substring( 3 );
@@ -174,8 +176,14 @@ public class crawling {
 					//2-gram 생성
 					HashSet<String> biSet = new HashSet<>();
 
+					//사이트 타이틀
 					for( int i = 0; i < adSiteTitle.length() - 1; i++ ) {
 						biSet.add( adSiteTitle.substring( i , i + 2 ) );
+					}
+
+					//사이트 설명
+					for( int i = 0; i < adSiteExpStr.length() - 1; i++ ) {
+						biSet.add( adSiteExpStr.substring( i , i + 2 ) );
 					}
 
 					ArrayList<String> bigram = new ArrayList<>( biSet );
@@ -183,14 +191,20 @@ public class crawling {
 					//3-gram 생성
 					HashSet<String> triSet = new HashSet<>();
 
+					//사이트 타이틀
 					for( int i = 0; i < adSiteTitle.length() - 2; i++ ) {
 						triSet.add( adSiteTitle.substring( i , i + 3 ) );
+					}
+
+					//사이트 설명
+					for( int i = 0; i < adSiteExpStr.length() - 2; i++ ) {
+						triSet.add( adSiteExpStr.substring( i , i + 3 ) );
 					}
 
 					ArrayList<String> trigram = new ArrayList<>( triSet );
 
 					System.out.println( sn + " { siteUrl : \"" + adSiteUrl + "\" , siteNm : \"" + adSiteTitle + "\" , siteExplain : \"" + adSiteExpStr + "\", searchContent : \"" + searchContent + "\"}," );
-					siteInfoHs.add( new siteInfo( adSiteUrl , adSiteTitle, adSiteExpStr.toString(), searchContent, bigram, trigram ) );
+					siteInfoHs.add( new siteInfo( adSiteUrl , adSiteTitle, adSiteExpStr, searchContent, bigram, trigram ) );
 					sn++;
 				}
 				/*************************************광고 검색 결과*********************************************/
@@ -217,13 +231,16 @@ public class crawling {
 					}
 
 					List<String> siteExpList = ele.getElementsByClass( "lyLwlc" ).eachText();	//사이트 설명 - 여러 줄인 경우 존재
-					StringBuilder siteExpStr = new StringBuilder();								//사이트 설명 합치는 stringbuilder
+					StringBuilder siteExpSB = new StringBuilder();								//사이트 설명 합치는 stringbuilder
 
 					int siteExpLength 		 = siteExpList.size();
 
 					for(int j = 0; j < siteExpLength; j++) {
-						siteExpStr.append( siteExpList.get( j ) );
+						siteExpSB.append( siteExpList.get( j ) );
 					}
+
+					//사이트 설명 string으로 형변환
+					String siteExpStr = siteExpSB.toString();
 
 					boolean isExcepUrl = false;
 
@@ -246,8 +263,14 @@ public class crawling {
 						//2-gram 생성
 						HashSet<String> biSet = new HashSet<>();
 
+						//사이트 타이틀
 						for( int i = 0; i < siteTitle.length() - 1; i++ ) {
 							biSet.add( siteTitle.substring( i , i + 2 ) );
+						}
+
+						//사이트 설명
+						for( int i = 0; i < siteExpStr.length() - 1; i++ ) {
+							biSet.add( siteExpStr.substring( i , i + 2 ) );
 						}
 
 						ArrayList<String> bigram = new ArrayList<>( biSet );
@@ -255,14 +278,20 @@ public class crawling {
 						//3-gram 생성
 						HashSet<String> triSet = new HashSet<>();
 
+						//사이트 타이틀
 						for( int i = 0; i < siteTitle.length() - 2; i++ ) {
 							triSet.add( siteTitle.substring( i , i + 3 ) );
+						}
+
+						//사이트 설명
+						for( int i = 0; i < siteExpStr.length() - 2; i++ ) {
+							triSet.add( siteExpStr.substring( i , i + 3 ) );
 						}
 
 						ArrayList<String> trigram = new ArrayList<>( triSet );
 
 						System.out.println( sn + " { siteUrl : \"" + siteUrl + "\", siteTitle : \"" + siteTitle + "\" , siteExplain : \"" + siteExpStr + "\", searchContent : \"" + searchContent + "\"}," );
-						siteInfoHs.add( new siteInfo( siteUrl , siteTitle, siteExpStr.toString(), searchContent, bigram, trigram ) );
+						siteInfoHs.add( new siteInfo( siteUrl , siteTitle, siteExpStr, searchContent, bigram, trigram ) );
 						sn++;
 					}
 				}
