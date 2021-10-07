@@ -1,10 +1,15 @@
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.regex.Pattern;
+
+import javax.print.Doc;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -13,6 +18,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
@@ -77,34 +83,70 @@ public class searchOrInsertWithDB {
 		}
 	}
 
-	public static void find( String searchContent ) throws IOException {
+	public static void find() throws IOException {
 
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter( System.out) );
 
+		bw.write( "검색된 목록들\n" );
+
+		MongoCursor<String> reCur = collection.distinct( "searchContent", String.class).iterator();
+
+		while( reCur.hasNext() ) {
+			bw.write( reCur.next() + "\n" );
+		}
+
+		bw.write("\n");
+
+		bw.write( "검색어 입력\n" );
+		bw.flush();
+		String srchContent = br.readLine();
+
+		//보여지는 컬럼
+		Bson projectionFields = Projections.fields(
+				Projections.include( "siteUrl", "siteTitle", "siteExplain", "searchContent" ),
+				Projections.excludeId()
+			);
+
+		//FTS 인덱스 - siteTitle, siteExplain으로 n-gram 생성
 		BasicDBObject query = new BasicDBObject();
 		BasicDBObject subquery = new BasicDBObject();
 
-		subquery.put( "$search" , searchContent );
-		query.put( "$text" , subquery);
+		subquery.put( "$search" , srchContent );
+		query.put(    "$text"   , subquery    );
 
-		Bson projectionFields = Projections.fields(
-					Projections.include( "siteUrl", "siteTitle", "siteExplain", "searchContent" ),
-					Projections.excludeId()
-				);
+		MongoCursor<Document> curFtsIndex  = collection.find( query ).projection( projectionFields ).iterator();
 
-		MongoCursor<Document> cur = collection.find( query ).projection( projectionFields ).iterator()  ;
+		//siteUrl like 검색
+		BasicDBObject siteUrlQuery = new BasicDBObject();
+		siteUrlQuery.put( "siteUrl" , Pattern.compile( srchContent ) );
+		MongoCursor<Document> curSiteUrl   = collection.find( siteUrlQuery ).projection( projectionFields ).iterator();
 
 		int size = 1;
 
 		try {
 
-			if( !cur.hasNext() ) {
+			if( !curFtsIndex.hasNext() && !curSiteUrl.hasNext() ) {
 				bw.write( "search Result : 0" );
 
 			}else {
-				while( cur.hasNext() ) {
-					Document doc = cur.next();
-					bw.write( size + " : " + doc.toJson() + "\n" );
+
+				HashSet<String> printHs = new HashSet<>();
+
+				while( curFtsIndex.hasNext() ) {
+					Document docFts = curFtsIndex.next();
+					printHs.add( docFts.toJson() );
+				}
+
+				while( curSiteUrl.hasNext() ) {
+					Document docUrl = curSiteUrl.next();
+					printHs.add( docUrl.toJson() );
+				}
+
+				Iterator<String> iter = printHs.iterator();
+
+				while( iter.hasNext() ) {
+					bw.write( size + " : " + iter.next() + "\n" );
 					size++;
 				}
 			}
@@ -113,7 +155,8 @@ public class searchOrInsertWithDB {
 		} finally {
 			bw.flush();
 			bw.close();
-			cur.close();
+			curFtsIndex.close();
+			curSiteUrl.close();
 		}
 	}
 

@@ -16,13 +16,8 @@ public class colcWebCrawling {
 			int choice = Integer.parseInt( br.readLine() );
 
 			if( choice == 1 ) {
-
-				System.out.println( "검색할 명령어 입력" );
-
-				String srchContent = br.readLine();
-
 				//검색
-				searchOrInsertWithDB.find( srchContent );
+				searchOrInsertWithDB.find();
 
 			}else if( choice == 2 ) {
 				//데이터 적재

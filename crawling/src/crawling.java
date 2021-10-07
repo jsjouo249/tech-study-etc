@@ -54,7 +54,7 @@ class siteInfo{
 public class crawling {
 
 	public static void main(String[] args) throws Exception {
-		makeExcel("메리트 토토");
+		makeExcel("메리트 바카라");
 	}
 
 	public static HashSet<siteInfo> makeExcel( String srchContent ) throws Exception{
@@ -75,7 +75,7 @@ public class crawling {
 		quePg.add( searchMain + searchNextUrl + searchContent + searchPage + "0" );
 
 		//제외 단어 리스트			나무위키  위키피디아     구글 도서 관련
-		String[] excepWord = { "namu", "wiki", "books.google.co.kr" };
+		String[] excepWord = { "namu", "wiki", "books.google.co.kr", "music.bugs.co.kr" };
 
 		int idx = 2;	  //현재 pageNum이되며, 다음 페이지의 시작 pageNum이 됨
 		int lastPage = 0; //마지막 pageNum
@@ -224,7 +224,9 @@ public class crawling {
 					//사이트 URL 추출
 					while( st.hasMoreTokens() ) {
 						if( st.nextToken().contains( "yuRUbf" ) ) {
-							String temp = st.nextToken().split("\"")[1];
+							StringTokenizer cut = new StringTokenizer( st.nextToken(), "\"" );
+							cut.nextToken(); //"으로 자른 값 중 쓰레기 값 버리기
+							String temp = cut.nextToken();
 							siteUrl = ( URLDecoder.decode( URLDecoder.decode( temp ) ) );
 							break;
 						}
@@ -254,7 +256,8 @@ public class crawling {
 
 					if( !isExcepUrl ) {
 						if( siteUrl.contains( "›" ) ) {
-							siteUrl = siteUrl.split( "›" )[0];
+							StringTokenizer cut = new StringTokenizer( siteUrl, "›" );
+							siteUrl = cut.nextToken();
 						}
 
 						siteUrl   = siteUrl.replace( "\"", "'");
