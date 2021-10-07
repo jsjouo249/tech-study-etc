@@ -9,15 +9,20 @@ public class colcWebCrawling {
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
+		System.out.println( "검색 : 1, 데이터 적재 : 2" );
+
+		int choice = Integer.parseInt( br.readLine() );
+
 		//getMongoCollection으로 db연동 및 해당 collection 확인
 		if( null != searchOrInsertWithDB.getMongoCollection() ) {
-			System.out.println( "검색 : 1, 데이터 적재 : 2" );
-
-			int choice = Integer.parseInt( br.readLine() );
-
 			if( choice == 1 ) {
+
+				System.out.println( "검색할 명령어 입력" );
+
+				String srchContent = br.readLine();
+
 				//검색
-				searchOrInsertWithDB.find();
+				searchOrInsertWithDB.find( srchContent );
 
 			}else if( choice == 2 ) {
 				//데이터 적재
@@ -31,11 +36,9 @@ public class colcWebCrawling {
 				 * siteTitle		: 사이트 타이틀
 				 * siteExplain		: 사이트 설명
 				 * searchContent	: 검색 명
-				 * bigram			: 2gram
-				 * trigram			: 3gram
 				 *
 				 * return ArrayList
-				 * 이미 데이터를 적재한 이력이 있으면 return null;
+				 * 이미 검색한 이력이 있으면 return null;
 				 */
 				HashSet<siteInfo> siteInfoHs = crawling.makeExcel( srchContent );
 
