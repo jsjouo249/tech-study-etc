@@ -63,7 +63,7 @@ public class shortTermWeatherForeCast {
     	BufferedWriter bw = new BufferedWriter(new OutputStreamWriter( System.out) );
 
         StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/1360000/AsosHourlyInfoService/getWthrDataList"); /*URL*/
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=pg8FRO9oCXu%2FzuZq1nHN2nUdZvuYTRTV%2BMDo0mO5QVdIxtk0A3BNLBl1122bg2uaprneUUn7h6P%2BMdKbZLY5gQ%3D%3D"); /*Service Key*/
+        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "0"); /*Service Key*/
         urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") 	+ "=" + URLEncoder.encode("1", "UTF-8")); /*페이지번호 Default : 10*/
         urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") 	+ "=" + URLEncoder.encode("999", "UTF-8")); /*한 페이지 결과 수 Default : 1*/
         urlBuilder.append("&" + URLEncoder.encode("dataType","UTF-8") 	+ "=" + URLEncoder.encode("json", "UTF-8")); /*요청자료형식(XML/JSON) Default : XML*/
