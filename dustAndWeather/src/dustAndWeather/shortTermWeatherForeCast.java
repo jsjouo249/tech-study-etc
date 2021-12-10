@@ -2,6 +2,7 @@ package dustAndWeather;
 
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -18,7 +19,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 
 class weatherData{
-	String tm;			//시간
+	String tm;			//일자
+	String hour;		//시
 	String stnNm;		//위치
 	String ta;			//기온
 	String rn;			//강수량
@@ -26,8 +28,9 @@ class weatherData{
 	String wd;			//풍향
 	String hm;			//습도
 
-	public weatherData(String tm, String stnNm, String ta, String rn, String ws, String wd, String hm ) {
+	public weatherData(String tm, String hour, String stnNm, String ta, String rn, String ws, String wd, String hm ) {
 		this.tm 	= tm;
+		this.hour	= hour;
 		this.stnNm 	= stnNm;
 		this.ta 	= ta;
 
@@ -58,12 +61,65 @@ public class shortTermWeatherForeCast {
 
 	static List<weatherData> ll = new ArrayList<>();
 
+	public static List<weatherData> weather( String day ) throws IOException, JSONException {
+
+		StringBuilder sb = init( day );
+
+		List<weatherData> ll = jsonParser( new JSONObject( sb.toString() ) );
+
+		return ll;
+
+	}
+
+	private static StringBuilder init( String day ) throws IOException {
+
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter( System.out) );
+
+        StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/1360000/AsosHourlyInfoService/getWthrDataList"); /*URL*/
+        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=?"); /*Service Key*/
+        urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") 	+ "=" + URLEncoder.encode("1", "UTF-8")); /*페이지번호 Default : 10*/
+        urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") 	+ "=" + URLEncoder.encode("999", "UTF-8")); /*한 페이지 결과 수 Default : 1*/
+        urlBuilder.append("&" + URLEncoder.encode("dataType","UTF-8") 	+ "=" + URLEncoder.encode("json", "UTF-8")); /*요청자료형식(XML/JSON) Default : XML*/
+        urlBuilder.append("&" + URLEncoder.encode("dataCd","UTF-8") 	+ "=" + URLEncoder.encode("ASOS", "UTF-8")); /*자료 분류 코드(ASOS)*/
+        urlBuilder.append("&" + URLEncoder.encode("dateCd","UTF-8") 	+ "=" + URLEncoder.encode("HR", "UTF-8")); /*날짜 분류 코드(HR)*/
+        urlBuilder.append("&" + URLEncoder.encode("startDt","UTF-8") 	+ "=" + URLEncoder.encode( day, "UTF-8")); /*조회 기간 시작일(YYYYMMDD)*/
+        urlBuilder.append("&" + URLEncoder.encode("startHh","UTF-8") 	+ "=" + URLEncoder.encode("01", "UTF-8")); /*조회 기간 시작시(HH)*/
+        urlBuilder.append("&" + URLEncoder.encode("endDt","UTF-8") 		+ "=" + URLEncoder.encode( day, "UTF-8")); /*조회 기간 종료일(YYYYMMDD) (전일(D-1) 까지 제공)*/
+        urlBuilder.append("&" + URLEncoder.encode("endHh","UTF-8") 		+ "=" + URLEncoder.encode("23", "UTF-8")); /*조회 기간 종료시(HH)*/
+        urlBuilder.append("&" + URLEncoder.encode("stnIds","UTF-8") 	+ "=" + URLEncoder.encode("108", "UTF-8")); /*종관기상관측 지점 번호 (108 - 서울)*/
+
+        URL url = new URL(urlBuilder.toString());
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Content-type", "application/json");
+
+        BufferedReader rd;
+
+        if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        } else {
+            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+        }
+
+        StringBuilder sb = new StringBuilder();
+        String line;
+
+        while ((line = rd.readLine()) != null) {
+            sb.append(line);
+        }
+
+        rd.close();
+        conn.disconnect();
+
+		return sb;
+	}
+
     public static void main(String[] args) throws IOException, JSONException {
 
     	BufferedWriter bw = new BufferedWriter(new OutputStreamWriter( System.out) );
 
         StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/1360000/AsosHourlyInfoService/getWthrDataList"); /*URL*/
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "0"); /*Service Key*/
+        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=pg8FRO9oCXu%2FzuZq1nHN2nUdZvuYTRTV%2BMDo0mO5QVdIxtk0A3BNLBl1122bg2uaprneUUn7h6P%2BMdKbZLY5gQ%3D%3D"); /*Service Key*/
         urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") 	+ "=" + URLEncoder.encode("1", "UTF-8")); /*페이지번호 Default : 10*/
         urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") 	+ "=" + URLEncoder.encode("999", "UTF-8")); /*한 페이지 결과 수 Default : 1*/
         urlBuilder.append("&" + URLEncoder.encode("dataType","UTF-8") 	+ "=" + URLEncoder.encode("json", "UTF-8")); /*요청자료형식(XML/JSON) Default : XML*/
@@ -98,12 +154,12 @@ public class shortTermWeatherForeCast {
         rd.close();
         conn.disconnect();
 
-        jsonParser( new JSONObject( sb.toString() ) );
+        List<weatherData> ll = jsonParser( new JSONObject( sb.toString() ) );
 
         System.out.println( sb.toString() );
 
         for( weatherData data : ll ) {
-    		bw.write( "시간 : " + data.tm + " 위치 : " + data.stnNm + " 기온 : " + data.ta + " 강수량 : " + data.rn + " 풍속 : " + data.ws + " 풍향 : " + data.wd + " 습도 : " + data.hm + "\n");
+    		bw.write( "일자 : " + data.tm + " 시 : " + data.hour + " 위치 : " + data.stnNm + " 기온 : " + data.ta + " 강수량 : " + data.rn + " 풍속 : " + data.ws + " 풍향 : " + data.wd + " 습도 : " + data.hm + "\n");
     	}
 
         bw.flush();
@@ -111,7 +167,9 @@ public class shortTermWeatherForeCast {
 
 	}
 
-    private static void jsonParser( JSONObject result ) throws JSONException{
+    private static List<weatherData> jsonParser( JSONObject result ) throws JSONException{
+
+    	List<weatherData> ll = new ArrayList<>();
 
         JSONObject response = (JSONObject) result.get("response");
         JSONObject body 	= (JSONObject) response.get("body");
@@ -158,7 +216,9 @@ public class shortTermWeatherForeCast {
     			}
         	}
 
-        	ll.add( new weatherData( weatherDataOfTime[0] , weatherDataOfTime[1], weatherDataOfTime[2], weatherDataOfTime[3], weatherDataOfTime[4], weatherDataOfTime[5], weatherDataOfTime[6]) );
+        	ll.add( new weatherData( weatherDataOfTime[0].split(" ")[0], weatherDataOfTime[0].split(" ")[1] , weatherDataOfTime[1], weatherDataOfTime[2], weatherDataOfTime[3], weatherDataOfTime[4], weatherDataOfTime[5], weatherDataOfTime[6]) );
         }
+
+    	return ll;
     }
 }

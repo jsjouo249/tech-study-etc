@@ -32,19 +32,27 @@ class dust{
 
 public class fineDust {
 
-	static List<dust> ll = new ArrayList<>();
+	public static List<dust> dust( String home, String office, String day ) throws IOException, JSONException{
 
-    public static void main(String[] args) throws IOException, JSONException {
+		StringBuilder sb = init( day );
 
-    	BufferedWriter bw = new BufferedWriter(new OutputStreamWriter( System.out) );
+		List<dust> ll = jsonParser( new JSONObject( sb.toString() ), home, office );
 
+		return ll;
+	}
+
+	private static StringBuilder init( String day ) throws IOException{
+
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter( System.out) );
+
+		//최근 3~6개월 데이터
 		StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/B552584/ArpltnStatsSvc/getMsrstnAcctoRDyrg"); /*URL*/
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "0"); /*Service Key*/
+        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=pg8FRO9oCXu%2FzuZq1nHN2nUdZvuYTRTV%2BMDo0mO5QVdIxtk0A3BNLBl1122bg2uaprneUUn7h6P%2BMdKbZLY5gQ%3D%3D"); /*Service Key*/
         urlBuilder.append("&" + URLEncoder.encode("returnType","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*xml 또는 json*/
         urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") 	+ "=" + URLEncoder.encode("17000", "UTF-8")); /*한 페이지 결과 수*/
         urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") 	+ "=" + URLEncoder.encode( "1", "UTF-8")); /*페이지번호*/
-        urlBuilder.append("&" + URLEncoder.encode("inqBginDt","UTF-8") 	+ "=" + URLEncoder.encode("20211001", "UTF-8")); /*조회시작일자*/
-        urlBuilder.append("&" + URLEncoder.encode("inqEndDt","UTF-8") 	+ "=" + URLEncoder.encode("20211030", "UTF-8")); /*조회종료일자*/
+        urlBuilder.append("&" + URLEncoder.encode("inqBginDt","UTF-8") 	+ "=" + URLEncoder.encode( day, "UTF-8")); /*조회시작일자*/
+        urlBuilder.append("&" + URLEncoder.encode("inqEndDt","UTF-8") 	+ "=" + URLEncoder.encode( day, "UTF-8")); /*조회종료일자*/
 
         URL url = new URL(urlBuilder.toString());
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -69,9 +77,49 @@ public class fineDust {
         rd.close();
         conn.disconnect();
 
-        jsonParser( new JSONObject( sb.toString() ) );
+		return sb;
+	}
+
+    public static void main(String[] args) throws IOException, JSONException {
+
+    	BufferedWriter bw = new BufferedWriter(new OutputStreamWriter( System.out) );
+
+		StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/B552584/ArpltnStatsSvc/getMsrstnAcctoRDyrg"); /*URL*/
+        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=?"); /*Service Key*/
+        urlBuilder.append("&" + URLEncoder.encode("returnType","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*xml 또는 json*/
+        urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") 	+ "=" + URLEncoder.encode("17000", "UTF-8")); /*한 페이지 결과 수*/
+        urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") 	+ "=" + URLEncoder.encode( "1", "UTF-8")); /*페이지번호*/
+        urlBuilder.append("&" + URLEncoder.encode("inqBginDt","UTF-8") 	+ "=" + URLEncoder.encode("20211007", "UTF-8")); /*조회시작일자*/
+        urlBuilder.append("&" + URLEncoder.encode("inqEndDt","UTF-8") 	+ "=" + URLEncoder.encode("20211008", "UTF-8")); /*조회종료일자*/
+
+        URL url = new URL(urlBuilder.toString());
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Content-type", "application/json");
+
+        BufferedReader rd;
+
+        if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        } else {
+            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+        }
+
+        StringBuilder sb = new StringBuilder();
+        String line;
+
+        while ((line = rd.readLine()) != null) {
+            sb.append(line);
+        }
+
+        rd.close();
+        conn.disconnect();
+
+        List<dust> ll = jsonParser( new JSONObject( sb.toString() ), "수지", "과천동" );
 
         boolean flag = true;
+
+        System.out.println( sb );
 
     	for( dust data : ll ) {
     		if( flag ) {
@@ -86,7 +134,9 @@ public class fineDust {
 
     }
 
-    private static void jsonParser( JSONObject result ) throws JSONException{
+    private static List<dust> jsonParser( JSONObject result, String home, String office ) throws JSONException{
+
+    	List<dust> ll = new ArrayList<>();
 
         JSONObject response = (JSONObject) result.get("response");
         JSONObject body 	= (JSONObject) response.get("body");
@@ -97,7 +147,7 @@ public class fineDust {
         	String temp = items.getString( i );
         	temp = temp.substring( 1, temp.length() - 1 ).replace("\"", "");
 
-        	if( temp.contains( "과천동" ) || temp.contains( "수지" ) ) {
+        	if( temp.contains( home ) || temp.contains( office ) ) {
 
         		StringTokenizer cut = new StringTokenizer( temp, "," );
 
@@ -122,5 +172,7 @@ public class fineDust {
         	}
 
         }
+
+    	return ll;
     }
 }
